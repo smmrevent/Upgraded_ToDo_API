@@ -1,1 +1,9 @@
-DATABASE_URL = "postgresql://postgres:password@localhost:5432/upd_todo_db"
+from pydantic_settings import BaseSettings
+
+class Settings(BaseSettings):
+    DATABASE_URL:  str
+
+    class Config:
+        env_file = ".env"
+
+settings = Settings()
