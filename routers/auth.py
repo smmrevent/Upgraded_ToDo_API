@@ -19,6 +19,7 @@ def create_access_token(token: TokenCreate):
     payload = {
         "id": token.id,
         "email": token.email,
+        "type": "access",
         "exp": datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     }
     access_token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
@@ -28,6 +29,7 @@ def create_refresh_token(token: TokenCreate):
     payload = {
         "id": token.id,
         "email": token.email,
+        "type": "refresh",
         "exp": datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     }
     refresh_token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
@@ -48,7 +50,7 @@ def login_user(data: UserLogin, response: Response, db: Session = Depends(get_db
         raise HTTPException(status_code=401, detail="User not found")
     if not verify_password(data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Wrong password")
-    token_data = TokenCreate(id=user.id, email=user.email)
+    token_data = TokenCreate(id = user.id, email = user.email)
     access_token = create_access_token(token_data)
     refresh_token = create_refresh_token(token_data)
     user.hashed_refresh_token = hash_token(refresh_token)
@@ -56,4 +58,3 @@ def login_user(data: UserLogin, response: Response, db: Session = Depends(get_db
     response.set_cookie(key="access_token", value=access_token, httponly=True, secure=True, samesite="lax")
     response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, secure=True, samesite="lax")
     return {"message": "Login successful"}
-    
